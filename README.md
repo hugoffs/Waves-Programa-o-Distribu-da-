@@ -184,14 +184,21 @@ Procedimento visita()
 
 ## Funcionamento passo a passo
 
-```text
-        <R>             <R>
-  [A] ───────▶ [B] ───────▶ [C]
- (iniciador)    │             │
-   ▲            │ <I:[B,C]>   │ <I:[C]>
-   │            ▼             │
-   └────────── [B] ◀──────────┘
-     <I:[B,C]>
+```mermaid
+sequenceDiagram
+    participant A as A (iniciador)
+    participant B
+    participant C
+
+    Note over A: AGUARDANDO_ID
+    A->>B: #lt;R#gt;
+    Note over B: OCIOSO → AGUARDANDO_ID<br/>entrada = A
+    B->>C: #lt;R#gt;
+    Note over C: OCIOSO, sem outros vizinhos<br/>entrada = B → OK
+    C-->>B: #lt;I:[C]#gt;
+    Note over B: acumula [B, C] → OK
+    B-->>A: #lt;I:[B, C]#gt;
+    Note over A: acumula [A, B, C] → OK<br/>imprime IDs coletados
 ```
 
 1. **A** (iniciador) vai para `AGUARDANDO_ID` e envia `<R>` aos vizinhos.
