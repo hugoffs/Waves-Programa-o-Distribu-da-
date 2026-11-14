@@ -8,7 +8,7 @@ Este repositório contém a especificação formal e a documentação do **Algor
 
 As definições formais dos estados, estados iniciais, finais e restrições do sistema distribuído seguem o modelo abaixo:
 
-$$\mathcal{S} = \{\text{INICIADOR, OCIOSO, AGUARDANDO_ID, OK}\}$$
+$$\mathcal{S} = \{\text{INICIADOR, OCIOSO, AGUARDANDO\_ID, OK}\}$$
 $$\mathcal{S}_{INI} = \{\text{INICIADOR, OCIOSO}\}$$
 $$\mathcal{S}_{FIM} = \{\text{OK}\}$$
 $$\text{Restrições} = \mathcal{R} \cup \{\text{TR, CN, BL, UI}\}$$
