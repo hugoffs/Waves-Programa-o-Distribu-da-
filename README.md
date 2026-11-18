@@ -30,9 +30,6 @@ python3 starter.py go a
   - [Estado INICIADOR](#estado-iniciador)
   - [Estado OCIOSO](#estado-ocioso)
   - [Estado AGUARDANDO_ID](#estado-aguardando_id)
-- [Procedimentos auxiliares](#procedimentos-auxiliares)
-  - [retornar()](#retornar)
-  - [visita()](#visita)
 - [Funcionamento passo a passo](#funcionamento-passo-a-passo)
 
 ---
