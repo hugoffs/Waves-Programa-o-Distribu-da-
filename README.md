@@ -1,6 +1,6 @@
 # Coleta de IDs em Sistema Distribuído (Echo / Onda de Propagação)
 
-Especificação em pseudocódigo de um algoritmo distribuído em que um nó **iniciador** dispara uma onda de mensagens pela rede e, ao final, coleta os **IDs de todos os nós**. A implementação está em [`Waves.py`](Waves.py), usando RabbitMQ (via `pika`) para a troca de mensagens entre os nós. O documento também traz dois procedimentos auxiliares em pseudocódigo, `retornar()` e `visita()`, que **não são usados** pela implementação atual.
+Especificação em pseudocódigo de um algoritmo distribuído em que um nó **iniciador** dispara uma onda de mensagens pela rede e, ao final, coleta os **IDs de todos os nós**. A implementação está em [`Waves.py`](Waves.py), usando RabbitMQ (via `pika`) para a troca de mensagens entre os nós.
 
 > Notação: `N(x)` é o conjunto de vizinhos do nó `x`, `id` é o identificador do nó e `origem` é o vizinho de quem a mensagem foi recebida.
 
@@ -90,9 +90,6 @@ Toda mensagem entre nós é enviada como `<id_origem>:<conteúdo>`:
   - [Estado INICIADOR](#estado-iniciador)
   - [Estado OCIOSO](#estado-ocioso)
   - [Estado AGUARDANDO_ID](#estado-aguardando_id)
-- [Procedimentos auxiliares](#procedimentos-auxiliares)
-  - [retornar()](#retornar)
-  - [visita()](#visita)
 - [Funcionamento passo a passo](#funcionamento-passo-a-passo)
 
 ---
@@ -133,7 +130,6 @@ Restrições = R ∪ { TR, CN, BL, UI }
 |----------|-----------|
 | `<R>` | Mensagem de requisição/propagação da onda |
 | `<I:dados>` | Mensagem de resposta carregando IDs (`dados`) coletados |
-| `<OK + Id>` | Mensagem de confirmação de término, usada apenas no pseudocódigo de `visita()` (não implementada) |
 
 ---
 
@@ -205,55 +201,6 @@ AGUARDANDO_ID
         envia <I:info_acumulada> a entrada
       fimse
     fimse
-```
-
----
-
-## Procedimentos auxiliares
-
-> ⚠️ Estes procedimentos são apenas pseudocódigo de referência e **não estão implementados** em `Waves.py`. O algoritmo da seção anterior funciona sem eles.
-
-### retornar()
-
-```text
-Procedimento retornar()
-  msg = list(msg)
-  msg >> "ok"
-  se vizinhos != None:
-    vizinhos = vizinhos - origem
-    mensagem = msg
-  fimse
-  senão:
-    estado = OK
-    se origem = id:
-      mensagem = mensagem + id
-      print()
-    fimse
-    senão:
-      envia <mensagem> a {origem}
-    fimse
-```
-
-### visita()
-
-```text
-Procedimento visita()
-  se msg == None:
-    vizinhos = N(x)
-    envia <R> a N(x)
-  fimse
-
-  se msg == R:
-    se origem_atual in vizinhos:
-      vizinhos = vizinhos - {origem_atual}
-      envia <R> a origem_atual
-    fimse
-  fimse
-
-  se vizinhos == None:
-    estado = OK
-    envia <OK + Id> a origem
-  fimse
 ```
 
 ---
