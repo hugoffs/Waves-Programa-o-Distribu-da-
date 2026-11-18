@@ -1,27 +1,87 @@
 # Coleta de IDs em Sistema Distribuído (Echo / Onda de Propagação)
 
-Especificação em pseudocódigo de um algoritmo distribuído em que um nó **iniciador** dispara uma onda de mensagens pela rede e, ao final, coleta os **IDs de todos os nós**. Também inclui dois procedimentos auxiliares, `retornar()` e `visita()`, para o controle do retorno e da visita aos vizinhos.
+Especificação em pseudocódigo de um algoritmo distribuído em que um nó **iniciador** dispara uma onda de mensagens pela rede e, ao final, coleta os **IDs de todos os nós**. A implementação está em [`Waves.py`](Waves.py), usando RabbitMQ (via `pika`) para a troca de mensagens entre os nós. O documento também traz dois procedimentos auxiliares em pseudocódigo, `retornar()` e `visita()`, que **não são usados** pela implementação atual.
 
 > Notação: `N(x)` é o conjunto de vizinhos do nó `x`, `id` é o identificador do nó e `origem` é o vizinho de quem a mensagem foi recebida.
 
 ---
 
 ## Rodar o código
-```
-# Nos
-python3 waves.py a b d
-python3 waves.py b c d a
-python3 waves.py c e b d
-python3 waves.py d a b e c 
-python3 waves.py e c d
 
-# Starter
-python3 starter.py go a
+### Pré-requisitos
+
+- Python 3
+- Biblioteca [`pika`](https://pypi.org/project/pika/): `pip install pika`
+- Um servidor **RabbitMQ** rodando em `localhost:5672` (o código usa `BlockingConnection()` com os parâmetros padrão, usuário `guest`). Por exemplo, via Docker:
+
+```bash
+docker run -d --rm --name rabbitmq -p 5672:5672 rabbitmq:3
 ```
+
+### Uso
+
+```text
+python3 Waves.py <id> [<vizinho1> <vizinho2> ...]
+```
+
+Cada nó é um processo separado, identificado por `<id>`, e cria uma fila no RabbitMQ com esse nome. Os vizinhos informados precisam ser **simétricos** (se `a` lista `b`, então `b` deve listar `a`), pois o algoritmo assume enlaces bidirecionais.
+
+### Exemplo (5 nós)
+
+Abra um terminal para cada nó e inicie **todos** antes do starter — se a fila de um nó ainda não existir, o RabbitMQ descarta as mensagens enviadas a ele.
+
+```bash
+python3 Waves.py a b d
+python3 Waves.py b c d a
+python3 Waves.py c e b d
+python3 Waves.py d a b e c
+python3 Waves.py e c d
+```
+
+Topologia resultante:
+
+```mermaid
+graph LR
+    a --- b
+    a --- d
+    b --- c
+    b --- d
+    c --- d
+    c --- e
+    d --- e
+```
+
+### Disparando o iniciador
+
+O nó se torna iniciador ao receber, na sua fila, uma mensagem sem prefixo de origem (ex.: `go`) ou com o prefixo `STARTER:` (ex.: `STARTER:go`). O script `starter.py` do professor **não faz parte deste repositório**; sem ele, envie a mensagem diretamente com `pika`:
+
+```bash
+python3 -c "import pika; c=pika.BlockingConnection(); c.channel().basic_publish(exchange='', routing_key='a', body='go'); c.close()"
+```
+
+Saída esperada no nó `a` (a ordem dos IDs pode variar):
+
+```text
+Aplicativo Terminado. IDs coletados: ['a', 'd', 'b', 'c', 'e']
+Terminando
+```
+
+Cada nó encerra sozinho (`Terminando`) ao chegar no estado `OK`. Para rodar de novo, reinicie todos os nós.
+
+### Formato das mensagens trocadas
+
+Toda mensagem entre nós é enviada como `<id_origem>:<conteúdo>`:
+
+| Corpo na fila | Significado |
+|---------------|-------------|
+| `go` ou `STARTER:go` | Dispara o nó como iniciador |
+| `b:R` | `<R>` vindo do nó `b` |
+| `c:I:c,e` | `<I:[c, e]>` vindo do nó `c` |
 
 
 ## Sumário
 
+- [Rodar o código](#rodar-o-código)
 - [Visão geral](#visão-geral)
 - [Modelo](#modelo)
 - [Mensagens](#mensagens)
@@ -73,7 +133,7 @@ Restrições = R ∪ { TR, CN, BL, UI }
 |----------|-----------|
 | `<R>` | Mensagem de requisição/propagação da onda |
 | `<I:dados>` | Mensagem de resposta carregando IDs (`dados`) coletados |
-| `<OK + Id>` | Mensagem de confirmação de término, usada em `visita()` |
+| `<OK + Id>` | Mensagem de confirmação de término, usada apenas no pseudocódigo de `visita()` (não implementada) |
 
 ---
 
@@ -102,7 +162,7 @@ INICIADOR
     info_acumulada = [id]
     envia <R> a N(x)
 
-    se contador == N(x):
+    se contador == |N(x)|:     // sem vizinhos: termina na hora
       estado = OK
       imprime("Aplicativo Terminado. IDs coletados: ", info_acumulada)
     fimse
@@ -137,7 +197,7 @@ AGUARDANDO_ID
       adiciona dados recebidos a info_acumulada
     fimse
 
-    se contador = N(x):
+    se contador == |N(x)|:
       estado = OK
       se iniciador == True:
         imprime("Aplicativo Terminado. IDs coletados: ", info_acumulada)
@@ -150,6 +210,8 @@ AGUARDANDO_ID
 ---
 
 ## Procedimentos auxiliares
+
+> ⚠️ Estes procedimentos são apenas pseudocódigo de referência e **não estão implementados** em `Waves.py`. O algoritmo da seção anterior funciona sem eles.
 
 ### retornar()
 
@@ -214,6 +276,8 @@ sequenceDiagram
     B-->>A: #lt;I:[B, C]#gt;
     Note over A: acumula [A, B, C] → OK<br/>imprime IDs coletados
 ```
+
+Exemplo simplificado com uma rede em linha `A — B — C`:
 
 1. **A** (iniciador) vai para `AGUARDANDO_ID` e envia `<R>` aos vizinhos.
 2. **B** (`OCIOSO`) recebe `<R>`, define `entrada = A` e repassa `<R>` a **C**.
