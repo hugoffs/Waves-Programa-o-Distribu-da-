@@ -12,7 +12,7 @@ Especificação em pseudocódigo de um algoritmo distribuído em que um nó **in
 python3 waves.py a b d
 python3 waves.py b c d a
 python3 waves.py c e b d
-python3 waves.py d a b e
+python3 waves.py d a b e c 
 python3 waves.py e c d
 
 # Starter
