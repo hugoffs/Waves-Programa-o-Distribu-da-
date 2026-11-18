@@ -6,6 +6,16 @@ Especificação em pseudocódigo de um algoritmo distribuído em que um nó **in
 
 ---
 
+## Rodar o código
+```
+python3 waves.py a b c
+python3 waves.py b a c
+python3 waves.py c a b
+
+python3 starter.py go a
+```
+
+
 ## Sumário
 
 - [Visão geral](#visão-geral)
