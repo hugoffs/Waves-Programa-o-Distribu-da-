@@ -5,18 +5,11 @@ Especificação em pseudocódigo de um algoritmo distribuído em que um nó **in
 > Notação: `N(x)` é o conjunto de vizinhos do nó `x`, `id` é o identificador do nó e `origem` é o vizinho de quem a mensagem foi recebida.
 
 ---
-
-## Rodar o código
-
 ### Pré-requisitos
 
 - Python 3
 - Biblioteca [`pika`](https://pypi.org/project/pika/): `pip install pika`
-- Um servidor **RabbitMQ** rodando em `localhost:5672` (o código usa `BlockingConnection()` com os parâmetros padrão, usuário `guest`). Por exemplo, via Docker:
-
-```bash
-docker run -d --rm --name rabbitmq -p 5672:5672 rabbitmq:3
-```
+- Um servidor **RabbitMQ**
 
 ### Uso
 
@@ -36,6 +29,8 @@ python3 Waves.py b c d a
 python3 Waves.py c e b d
 python3 Waves.py d a b e c
 python3 Waves.py e c d
+
+python3 starter.py go a
 ```
 
 Topologia resultante:
